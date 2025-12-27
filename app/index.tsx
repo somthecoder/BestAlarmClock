@@ -1,38 +1,20 @@
-import { Button, Image, View, Alert } from 'react-native';
-import * as ImagePicker from 'expo-image-picker';
-import { useState } from 'react';
+import { Link } from "expo-router";
+import { View, Text, Pressable, StyleSheet } from "react-native";
 
-const CameraOpener = () => {
-  const [imageUri, setImageUri] = useState<string | null>(null);
-
-  const openCamera = async () => {
-    const permissionResult = await ImagePicker.requestCameraPermissionsAsync();
-
-    if (!permissionResult.granted) {
-      Alert.alert('Permission required', 'Camera permission is required to take a photo.');
-      return;
-    }
-
-    const cameraResult = await ImagePicker.launchCameraAsync({
-      allowsEditing: true, 
-      aspect: [4, 3], 
-      quality: 1, 
-    });
-
-    if (!cameraResult.canceled) {
-      setImageUri(cameraResult.assets[0].uri);
-      console.log(cameraResult.assets[0].uri);
-    }
-  };
-
+export default function Home() {
   return (
-    <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}>
-      <Button title="Open Camera" onPress={openCamera} />
-      {imageUri && (
-        <Image source={{ uri: imageUri }} style={{ width: 200, height: 200, marginTop: 20 }} />
-      )}
+    <View style={styles.container}>
+      <Link href="/camera" asChild>
+        <Pressable style={styles.button}>
+          <Text style={styles.buttonText}>Open Camera</Text>
+        </Pressable>
+      </Link>
     </View>
   );
-};
+}
 
-export default CameraOpener;
+const styles = StyleSheet.create({
+  container: { flex: 1, alignItems: "center", justifyContent: "center", backgroundColor: "black" },
+  button: { backgroundColor: "rgba(255,255,255,0.15)", paddingVertical: 14, paddingHorizontal: 20, borderRadius: 12 },
+  buttonText: { color: "white", fontSize: 16 },
+});
