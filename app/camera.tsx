@@ -4,84 +4,90 @@ import { Camera, useCameraDevice, useCameraPermission } from "react-native-visio
 import { useIsFocused } from "@react-navigation/native";
 
 export default function CameraScreen() {
-  const isFocused = useIsFocused();
+    const isFocused = useIsFocused();
 
-  const { hasPermission, requestPermission } = useCameraPermission();
-  const [isCameraReady, setIsCameraReady] = useState(false);
+    const { hasPermission, requestPermission } = useCameraPermission();
+    const [isCameraReady, setIsCameraReady] = useState(false);
 
-  const device = useCameraDevice("front"); // TODO: add toggle for front/back
+    const [position, setPosition] = useState<"front" | "back">("front");
+    const device = useCameraDevice(position);
 
-  useEffect(() => {
+    useEffect(() => {
     if (!hasPermission) {
-      requestPermission();
+        requestPermission();
     }
-  }, [hasPermission, requestPermission]);
+    }, [hasPermission, requestPermission]);
 
-  const canRenderCamera = useMemo(() => {
+    const canRenderCamera = useMemo(() => {
     return Boolean(device) && hasPermission && isFocused;
-  }, [device, hasPermission, isFocused]);
+    }, [device, hasPermission, isFocused]);
 
-  if (!device) {
+    const onFlip = () => {
+        setIsCameraReady(false);
+        setPosition((p) => (p === "front" ? "back" : "front"));
+    };
+
+    if (!device) {
+        return (
+            <View style={styles.center}>
+            <Text style={styles.text}>Loading camera device…</Text>
+            </View>
+        );
+    }
+
+    if (!hasPermission) {
+        return (
+            <View style={styles.center}>
+            <Text style={styles.text}>Camera permission is required.</Text>
+            <Pressable style={styles.button} onPress={requestPermission}>
+                <Text style={styles.buttonText}>Grant permission</Text>
+            </Pressable>
+
+            {Platform.OS === "android" ? (
+                <Text style={styles.hint}>
+                If previously denied, enable it in Android Settings → Apps → Your App → Permissions.
+                </Text>
+            ) : null}
+            </View>
+        );
+    }
+
     return (
-      <View style={styles.center}>
-        <Text style={styles.text}>Loading camera device…</Text>
-      </View>
-    );
-  }
-
-  if (!hasPermission) {
-    return (
-      <View style={styles.center}>
-        <Text style={styles.text}>Camera permission is required.</Text>
-        <Pressable style={styles.button} onPress={requestPermission}>
-          <Text style={styles.buttonText}>Grant permission</Text>
-        </Pressable>
-
-        {Platform.OS === "android" ? (
-          <Text style={styles.hint}>
-            If you previously denied, enable it in Android Settings → Apps → Your App → Permissions.
-          </Text>
-        ) : null}
-      </View>
-    );
-  }
-
-  return (
     <View style={styles.container}>
-      {canRenderCamera ? (
+        {canRenderCamera ? (
         <Camera
-          style={StyleSheet.absoluteFill}
-          device={device}
-          isActive={canRenderCamera}
-          onInitialized={() => setIsCameraReady(true)}
+            style={StyleSheet.absoluteFill}
+            device={device}
+            isActive={canRenderCamera}
+            onInitialized={() => setIsCameraReady(true)}
         />
-      ) : (
+        ) : (
         <View style={styles.center}>
-          <Text style={styles.text}>Camera paused…</Text>
+            <Text style={styles.text}>Camera paused…</Text>
         </View>
-      )}
+        )}
 
-      {/* pose stuff */}
-      <View pointerEvents="none" style={StyleSheet.absoluteFill}>
+        {/* pose stuff */}
+        <View pointerEvents="none" style={StyleSheet.absoluteFill}>
         <View style={styles.hud}>
-          <Text style={styles.hudText}>
+            <Text style={styles.hudText}>
             {isCameraReady ? "Camera ready" : "Initializing…"}
-          </Text>
+            </Text>
         </View>
-      </View>
+        </View>
 
-      {/* basic controls */}
-      <View style={styles.controls}>
-        <Pressable style={styles.button} onPress={() => { /* TODO: flip camera */ }}>
-          <Text style={styles.buttonText}>Flip (later)</Text>
+        {/* basic controls */}
+        <View style={styles.controls}>
+        <Pressable style={styles.button} onPress={onFlip}>
+            <Text style={styles.buttonText}>{position === "front" ? "Use Back" : "Use Front"}</Text>
         </Pressable>
 
         <Pressable style={styles.button} onPress={() => { /* TODO: start/stop processing */ }}>
-          <Text style={styles.buttonText}>Processing (later)</Text>
+            <Text style={styles.buttonText}>Processing (later)</Text>
         </Pressable>
-      </View>
+        </View>
     </View>
-  );
+    );
 }
 
 const styles = StyleSheet.create({
