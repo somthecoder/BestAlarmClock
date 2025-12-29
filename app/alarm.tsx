@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useRef } from "react";
 import { View, Text, StyleSheet, Pressable, Vibration } from "react-native";
 import { useAudioPlayer } from "expo-audio";
 import { router } from "expo-router";
@@ -12,6 +12,8 @@ export default function AlarmScreen() {
     const { status, ring } = useAlarmStore();
     const [error, setError] = useState<string | null>(null);
     const player = useAudioPlayer(alarmSound);
+    player.loop = true;
+    const mountedRef = useRef(true);
 
     useEffect(() => {
     let mounted = true;
@@ -37,8 +39,6 @@ export default function AlarmScreen() {
         mounted = false;
 
         Vibration.cancel();
-        player.pause();
-        player.seekTo(0);
     };
     }, [player, ring]);
 
