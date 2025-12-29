@@ -3,11 +3,13 @@ import { View, Text, StyleSheet, Pressable, Vibration } from "react-native";
 import { useAudioPlayer } from "expo-audio";
 import { router } from "expo-router";
 import { useAlarmStore } from "../scripts/alarmStore";
+import { useBlockBack } from "../scripts/useBlockBack";
 
 const alarmSound = require("../assets/alarm.mp3");
 
 export default function AlarmScreen() {
-    const { status, setStatus, ring } = useAlarmStore();
+    useBlockBack(true);
+    const { status, ring } = useAlarmStore();
     const [error, setError] = useState<string | null>(null);
     const player = useAudioPlayer(alarmSound);
 

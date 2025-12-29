@@ -16,6 +16,9 @@ type AlarmStore = {
   setTargetReps: (n: number) => void;
   incrementRep: (delta?: number) => void;
   resetReps: () => void;
+  timeoutId: ReturnType<typeof setTimeout> | null;
+  scheduleInSeconds: (seconds: number, onFire: () => void) => void;
+  cancel: () => void;
 };
 
 export const useAlarmStore = create<AlarmStore>((set, get) => ({
@@ -34,5 +37,25 @@ export const useAlarmStore = create<AlarmStore>((set, get) => ({
     const next = Math.min(targetReps, reps + delta);
     set({reps: next});
   },
-  resetReps: () => set({reps: 0})
+  resetReps: () => set({reps: 0}),
+  timeoutId: null,
+  scheduleInSeconds: (seconds, onFire) => {
+    // cancel previous
+    const prev = get().timeoutId;
+    if (prev) clearTimeout(prev);
+
+    const ms = Math.max(1, Math.floor(seconds)) * 1000;
+    const id = setTimeout(() => {
+      // when it fires:
+      set({ timeoutId: null, status: "RINGING", reps: 0 });
+      onFire();
+    }, ms);
+
+    set({ timeoutId: id, status: "ARMED" });
+  },
+  cancel: () => {
+    const id = get().timeoutId;
+    if (id) clearTimeout(id);
+    set({ timeoutId: null, status: "IDLE" });
+  },
 }));
