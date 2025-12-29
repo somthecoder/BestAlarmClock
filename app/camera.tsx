@@ -27,6 +27,8 @@ export default function CameraScreen() {
         setPosition((p) => (p === "front" ? "back" : "front"));
     };
 
+    const DOT = { x: 0.2, y: 0.3 };
+
     if (!device) {
         return (
             <View style={styles.center}>
@@ -67,6 +69,21 @@ export default function CameraScreen() {
         </View>
         )}
 
+        {/* test dot */}
+        <View pointerEvents="none" style={StyleSheet.absoluteFill}>
+        <View style={styles.dotContainer}>
+            <View
+            style={[
+                styles.dot,
+                {
+                left: `${(position === "front" ? 1 - DOT.x : DOT.x) * 100}%`,
+                top: `${DOT.y * 100}%`,
+                },
+            ]}
+            />
+        </View>
+        </View>
+
         {/* pose stuff */}
         <View pointerEvents="none" style={StyleSheet.absoluteFill}>
         <View style={styles.hud}>
@@ -91,26 +108,36 @@ export default function CameraScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: "black" },
-  center: { flex: 1, alignItems: "center", justifyContent: "center", padding: 16, backgroundColor: "black" },
-  text: { color: "white", fontSize: 16, textAlign: "center" },
-  hint: { color: "#cfcfcf", fontSize: 12, textAlign: "center", marginTop: 12 },
-  hud: { paddingTop: 50, paddingHorizontal: 16 },
-  hudText: { color: "white", fontSize: 14 },
-  controls: {
-    position: "absolute",
-    bottom: 24,
-    left: 16,
-    right: 16,
-    flexDirection: "row",
-    justifyContent: "space-between",
-    gap: 12,
-  },
-  button: {
-    backgroundColor: "rgba(255,255,255,0.15)",
-    paddingVertical: 12,
-    paddingHorizontal: 16,
-    borderRadius: 12,
-  },
-  buttonText: { color: "white", fontSize: 14 },
+    container: { flex: 1, backgroundColor: "black" },
+    center: { flex: 1, alignItems: "center", justifyContent: "center", padding: 16, backgroundColor: "black" },
+    text: { color: "white", fontSize: 16, textAlign: "center" },
+    hint: { color: "#cfcfcf", fontSize: 12, textAlign: "center", marginTop: 12 },
+    hud: { paddingTop: 50, paddingHorizontal: 16 },
+    hudText: { color: "white", fontSize: 14 },
+    controls: {
+        position: "absolute",
+        bottom: 24,
+        left: 16,
+        right: 16,
+        flexDirection: "row",
+        justifyContent: "space-between",
+        gap: 12,
+    },
+    button: {
+        backgroundColor: "rgba(255,255,255,0.15)",
+        paddingVertical: 12,
+        paddingHorizontal: 16,
+        borderRadius: 12,
+    },
+    buttonText: { color: "white", fontSize: 14 },
+    dotContainer: {
+        ...StyleSheet.absoluteFillObject,
+    },
+    dot: {
+        position: "absolute",
+        width: 12,
+        height: 12,
+        borderRadius: 6,
+        backgroundColor: "red",
+    },
 });
