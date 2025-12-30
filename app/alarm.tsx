@@ -1,46 +1,18 @@
 import React, { useEffect, useState, useRef } from "react";
 import { View, Text, StyleSheet, Pressable, Vibration } from "react-native";
-import { useAudioPlayer } from "expo-audio";
 import { router } from "expo-router";
 import { useAlarmStore } from "../scripts/alarmStore";
 import { useBlockBack } from "../scripts/useBlockBack";
 
-const alarmSound = require("../assets/alarm.mp3");
 
 export default function AlarmScreen() {
     useBlockBack(true);
     const { status, ring } = useAlarmStore();
     const [error, setError] = useState<string | null>(null);
-    const player = useAudioPlayer(alarmSound);
-    player.loop = true;
-    const mountedRef = useRef(true);
 
     useEffect(() => {
-    let mounted = true;
-
-    const startAlarm = async () => {
-        try {
         ring();
-
-        player.seekTo(0);
-        player.play();
-
-        Vibration.vibrate([500, 500], true);
-        } 
-        catch (e: any) {
-        if (!mounted) return;
-            setError(e?.message ?? "Failed to start alarm.");
-        }
-    };
-
-    startAlarm();
-
-    return () => {
-        mounted = false;
-
-        Vibration.cancel();
-    };
-    }, [player, ring]);
+    }, [ring]);
 
     const goVerify = () => router.replace("/verify");
 
@@ -50,24 +22,21 @@ export default function AlarmScreen() {
     };
 
     return (
-    <View style={styles.container}>
-        <Text style={styles.title}>ALARM</Text>
-        <Text style={styles.subtitle}>
-        Complete the exercise to stop it.
-        </Text>
-
-        <Pressable style={styles.primary} onPress={goVerify}>
-        <Text style={styles.primaryText}>Go to Verification</Text>
-        </Pressable>
-
-        <Pressable style={styles.secondary} onPress={onStopPressed}>
-        <Text style={styles.secondaryText}>Stop (disabled)</Text>
-        </Pressable>
-
-        {error ? <Text style={styles.error}>{error}</Text> : null}
-
-        <Text style={styles.debug}>Status: {status}</Text>
-    </View>
+        <View style={styles.container}>
+          <Text style={styles.title}>ALARM</Text>
+          <Text style={styles.subtitle}>Complete the exercise to stop it.</Text>
+    
+          <Pressable style={styles.primary} onPress={goVerify}>
+            <Text style={styles.primaryText}>Go to Verification</Text>
+          </Pressable>
+    
+          <Pressable style={styles.secondary} onPress={onStopPressed}>
+            <Text style={styles.secondaryText}>Stop (disabled)</Text>
+          </Pressable>
+    
+          {error ? <Text style={styles.error}>{error}</Text> : null}
+          <Text style={styles.debug}>Status: {status}</Text>
+        </View>
     );
 }
 

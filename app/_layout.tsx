@@ -1,11 +1,11 @@
 import { Stack } from "expo-router";
+import AlarmAudioController from "../components/AlarmAudioController";
 
 export default function RootLayout() {
   return (
-    <Stack
-      screenOptions={{
-        headerShown: false,
-      }}
-    />
+    <>
+      <AlarmAudioController />
+      <Stack />
+    </>
   );
 }
