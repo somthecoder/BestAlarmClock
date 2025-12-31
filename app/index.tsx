@@ -1,3 +1,5 @@
+// app/index.tsx
+
 import React, { useMemo, useState } from "react";
 import { View, Text, StyleSheet, Pressable } from "react-native";
 import { router } from "expo-router";

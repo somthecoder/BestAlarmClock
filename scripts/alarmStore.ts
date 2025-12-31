@@ -1,3 +1,5 @@
+// scripts/alarmStore.ts
+
 import { create } from "zustand";
 
 export type AlarmStatus = "IDLE" | "ARMED" | "RINGING";

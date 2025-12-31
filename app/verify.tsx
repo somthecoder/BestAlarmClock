@@ -1,13 +1,17 @@
-import React, { useEffect, useMemo } from "react";
+// app/verify.tsx
+
+import React, { useEffect, useMemo, useRef, useState } from "react";
 import { View, Text, StyleSheet, Pressable } from "react-native";
 import { router } from "expo-router";
 import { useAlarmStore } from "../scripts/alarmStore";
 import CameraPreview from "../components/CameraPreview";
 import { useBlockBack } from "../scripts/useBlockBack";
+import { updatePushupRepCounter, type PushupState } from "../scripts/repCounter"
 
 
 export default function VerifyScreen() {
     useBlockBack(true);
+
     const {
         status,
         exercise,
@@ -17,6 +21,11 @@ export default function VerifyScreen() {
         resetReps,
         stop,
     } = useAlarmStore();
+
+    const pushupStateRef = useRef<PushupState>("UP");
+    const lastRepAtRef = useRef<number>(0);
+    const [debugAngle, setDebugAngle] = useState<number>(NaN);
+    const [debugSide, setDebugSide] = useState<string>("none");
 
     useEffect(() => {
     if (status !== "RINGING") {
@@ -31,15 +40,77 @@ export default function VerifyScreen() {
     router.replace("/");
     };
 
+    const stableDownRef = useRef(0);
+    const stableUpRef = useRef(0);
+
+    const emaAngleRef = useRef<number | null>(null);
+
+    const EMA_ALPHA = 0.25; // higher = more responsive, lower = smoother
+
+    function smoothAngle(raw: number) {
+        if (!Number.isFinite(raw)) return emaAngleRef.current ?? NaN; // keep last
+        const prev = emaAngleRef.current;
+        const next = prev == null ? raw : prev + EMA_ALPHA * (raw - prev);
+        emaAngleRef.current = next;
+        return next;
+    }
+
     return (
     <View style={styles.container}>
-        <CameraPreview />
+        <CameraPreview targetFps={15}
+        onPose={(kps) => {
+            if (exercise !== "pushups") return;
+
+            const { elbowAngle, side, quality } =
+            updatePushupRepCounter(kps, pushupStateRef.current);
+
+            // Smooth (holds last good value when raw is NaN)
+            const smoothed = smoothAngle(elbowAngle);
+
+            setDebugSide(`${side} q=${quality.toFixed(2)}`);
+            setDebugAngle(Number(smoothed));
+
+            // If we still don't have an angle, bail
+            if (!Number.isFinite(smoothed)) return;
+
+            // Frame-stability gating (prevents flicker)
+            const DOWN_ANGLE = 110;
+            const UP_ANGLE = 150;
+
+            if (pushupStateRef.current === "UP") {
+            if (smoothed < DOWN_ANGLE) stableDownRef.current += 1;
+            else stableDownRef.current = 0;
+
+            // require 2 consecutive "down-ish" frames
+            if (stableDownRef.current >= 2) {
+                pushupStateRef.current = "DOWN";
+                stableDownRef.current = 0;
+            }
+            } else {
+                if (smoothed > UP_ANGLE) stableUpRef.current += 1;
+                else stableUpRef.current = 0;
+
+                // require 2 consecutive "up-ish" frames
+                if (stableUpRef.current >= 2) {
+                    pushupStateRef.current = "UP";
+                    stableUpRef.current = 0;
+
+                    const now = Date.now();
+                    if (now - lastRepAtRef.current > 900) {
+                    lastRepAtRef.current = now;
+                    incrementRep(1);
+                    }
+                }
+            }
+        }}
+        />
 
         {/* Overlay UI */}
         <View pointerEvents="box-none" style={StyleSheet.absoluteFill}>
         <View style={styles.hud}>
             <Text style={styles.hudText}>
-            Do {targetReps} {exercise}
+            {/*Do {targetReps} {exercise}*/}
+            elbow: {Number.isFinite(debugAngle) ? debugAngle.toFixed(0) : "--"}° ({debugSide})
             </Text>
             <Text style={styles.hudTextBig}>
             {reps} / {targetReps}

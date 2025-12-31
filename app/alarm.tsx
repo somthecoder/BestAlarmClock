@@ -1,3 +1,5 @@
+// app/alarm.tsx
+
 import React, { useEffect, useState, useRef } from "react";
 import { View, Text, StyleSheet, Pressable, Vibration } from "react-native";
 import { router } from "expo-router";

@@ -1,3 +1,5 @@
+// scripts/useBlockBack.ts
+
 import { useEffect } from "react";
 import { BackHandler } from "react-native";
 
